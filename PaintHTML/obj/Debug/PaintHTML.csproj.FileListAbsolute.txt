@@ -2,3 +2,4 @@ D:\Document\Универ\МИР\PaintHTML\PaintHTML\bin\PaintHTML.dll
 D:\Document\Универ\МИР\PaintHTML\PaintHTML\bin\PaintHTML.pdb
 D:\Document\Универ\МИР\PaintHTML\PaintHTML\obj\Debug\PaintHTML.dll
 D:\Document\Универ\МИР\PaintHTML\PaintHTML\obj\Debug\PaintHTML.pdb
+D:\Document\Универ\МИР\PaintHTML\PaintHTML\obj\Debug\PaintHTML.csprojResolveAssemblyReference.cache

@@ -1,8 +1,10 @@
+        var cPushArray = new Array();
+        var cStep = -1;
+        var canvas, context, canvaso, contexto;
 // Keep everything in anonymous function, called on window load.
 if (window.addEventListener) {
     window.addEventListener('load', function () {
-        var canvas, context, canvaso, contexto;
-
+        
         // The active tool instance.
         var tool;
         var tool_default = 'line';
@@ -14,19 +16,16 @@ if (window.addEventListener) {
                 alert('Error: I cannot find the canvas element!');
                 return;
             }
-
             if (!canvaso.getContext) {
                 alert('Error: no canvas.getContext!');
                 return;
             }
-
             // Get the 2D canvas context.
             contexto = canvaso.getContext('2d');
             if (!contexto) {
                 alert('Error: failed to getContext!');
                 return;
             }
-
             // Add the temporary canvas.
             var container = canvaso.parentNode;
             canvas = document.createElement('canvas');
@@ -34,14 +33,11 @@ if (window.addEventListener) {
                 alert('Error: I cannot create a new canvas element!');
                 return;
             }
-
             canvas.id = 'imageTemp';
             canvas.width = canvaso.width;
             canvas.height = canvaso.height;
             container.appendChild(canvas);
-
             context = canvas.getContext('2d');
-
             // Get the tool select input.
             var tool_select = document.getElementById('dtool');
             if (!tool_select) {
@@ -49,17 +45,16 @@ if (window.addEventListener) {
                 return;
             }
             tool_select.addEventListener('change', ev_tool_change, false);
-
             // Activate the default tool.
             if (tools[tool_default]) {
                 tool = new tools[tool_default]();
                 tool_select.value = tool_default;
             }
-
             // Attach the mousedown, mousemove and mouseup event listeners.
             canvas.addEventListener('mousedown', ev_canvas, false);
             canvas.addEventListener('mousemove', ev_canvas, false);
             canvas.addEventListener('mouseup', ev_canvas, false);
+            drawImage();
         }
 
         // The general-purpose event handler. This function just determines the mouse 
@@ -72,21 +67,18 @@ if (window.addEventListener) {
                 ev._x = ev.offsetX;
                 ev._y = ev.offsetY;
             }
-
             // Call the event handler of the tool.
             var func = tool[ev.type];
             if (func) {
                 func(ev);
             }
         }
-
         // The event handler for any changes made to the tool selector.
         function ev_tool_change(ev) {
             if (tools[this.value]) {
                 tool = new tools[this.value]();
             }
         }
-
         // This function draws the #imageTemp canvas on top of #imageView, after which 
         // #imageTemp is cleared. This function is called each time when the user 
         // completes a drawing operation.
@@ -94,15 +86,12 @@ if (window.addEventListener) {
             contexto.drawImage(canvas, 0, 0);
             context.clearRect(0, 0, canvas.width, canvas.height);
         }
-
         // This object holds the implementation of each drawing tool.
         var tools = {};
-
         // The drawing pencil.
         tools.pencil = function () {
             var tool = this;
             this.started = false;
-
             // This is called when you start holding down the mouse button.
             // This starts the pencil drawing.
             this.mousedown = function (ev) {
@@ -112,7 +101,6 @@ if (window.addEventListener) {
                 context.moveTo(ev._x, ev._y);
                 tool.started = true;
             };
-
             // This function is called every time you move the mouse. Obviously, it only 
             // draws if the tool.started state is set to true (when you are holding down 
             // the mouse button).
@@ -122,33 +110,38 @@ if (window.addEventListener) {
                     context.stroke();
                 }
             };
-
             // This is called when you release the mouse button.
             this.mouseup = function (ev) {
                 if (tool.started) {
                     tool.mousemove(ev);
                     tool.started = false;
                     img_update();
+                    cPush();
+                }
+            };
+            this.mouseleave = function (ev) {
+                if (tool.started) {
+                    tool.mousemove(ev);
+                    tool.started = false;
+                    img_update();
+                    cPush();
                 }
             };
         };
-
+        
         // The rectangle tool.
         tools.rect = function () {
             var tool = this;
             this.started = false;
-
             this.mousedown = function (ev) {
                 tool.started = true;
                 tool.x0 = ev._x;
                 tool.y0 = ev._y;
             };
-
             this.mousemove = function (ev) {
                 if (!tool.started) {
                     return;
                 }
-
                 var x = Math.min(ev._x, tool.x0),
           y = Math.min(ev._y, tool.y0),
           w = Math.abs(ev._x - tool.x0),
@@ -158,36 +151,42 @@ if (window.addEventListener) {
                 context.strokeStyle = $('#setLineColor').val();
                 context.lineWidth = 4;
                 context.clearRect(0, 0, canvas.width, canvas.height);
-
                 if (!w || !h) {
                     return;
                 }
                 context.fillRect(x, y, w, h);
                 context.strokeRect(x, y, w, h);
-
             };
-
             this.mouseup = function (ev) {
                 if (tool.started) {
                     tool.mousemove(ev);
                     tool.started = false;
                     img_update();
+                    cPush();
+                }
+            };
+            this.mouseleave = function (ev) {
+                if (tool.started) {
+                    tool.mousemove(ev);
+                    tool.started = false;
+                    img_update();
+                    cPush();
                 }
             };
         };
 
         // The line tool.
-        tools.line = function () {
+        tools.line = function() {
             var tool = this;
             this.started = false;
 
-            this.mousedown = function (ev) {
+            this.mousedown = function(ev) {
                 tool.started = true;
                 tool.x0 = ev._x;
                 tool.y0 = ev._y;
             };
 
-            this.mousemove = function (ev) {
+            this.mousemove = function(ev) {
                 if (!tool.started) {
                     return;
                 }
@@ -202,16 +201,54 @@ if (window.addEventListener) {
                 context.closePath();
             };
 
-            this.mouseup = function (ev) {
+            this.mouseup = function(ev) {
                 if (tool.started) {
                     tool.mousemove(ev);
                     tool.started = false;
                     img_update();
+                    cPush();
+                }
+            };
+            this.mouseleave = function(ev) {
+                if (tool.started) {
+                    tool.mousemove(ev);
+                    tool.started = false;
+                    img_update();
+                    cPush();
                 }
             };
         };
-
         init();
 
     }, false);
+}
+
+function drawImage() {
+    var image = new Image();
+    image.src = '123.jpg';
+    $(image).load(function () {
+        context.drawImage(image, 0, 0, 800, 600);
+        cPush();
+    });
+}
+function cPush() {
+    cStep++;
+    if (cStep < cPushArray.length) { cPushArray.length = cStep; }
+    cPushArray.push(document.getElementById('imageView').toDataURL());
+}
+function cUndo() {
+    if (cStep > 0) {
+        cStep--;
+        var canvasPic = new Image();
+        canvasPic.src = cPushArray[cStep];
+        canvasPic.onload = function () { context.drawImage(canvasPic, 0, 0); }
+    }
+}
+function cRedo() {
+    if (cStep < cPushArray.length - 1) {
+        cStep++;
+        var canvasPic = new Image();
+        canvasPic.src = cPushArray[cStep];
+        canvasPic.onload = function () { context.drawImage(canvasPic, 0, 0); }
+    }
 }
