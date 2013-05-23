@@ -1,10 +1,48 @@
         var cPushArray = new Array();
         var cStep = -1;
         var canvas, context, canvaso, contexto;
+        var self;
+        $(function () {
+            var viewModel = {
+                name: ko.observable("TolikR"),
+                changeName: function () {
+                    this.name("AVRoosin");
+                },
+                nameVisible: ko.observable(true),
+                Colors: ko.observableArray([{ value1: "black" },
+                            { value1: "blue" },
+                            { value1: "red" },
+                            { value1: "green" },
+                            { value1: "yellow" },
+                            { value1: "white" },
+                            { value1: "gray" }
+        ]),
+                lineWidth: ko.observableArray([{ text1: "1", value1: "1" },
+                            { value1: "3" },
+                            { value1: "5" },
+                            { value1: "7" },
+                            { value1: "9" },
+                            { value1: "11" }
+        ]),
+                selectedLColor: ko.observable(),
+                selectedFColor: ko.observable(),
+                selectedLWidth: ko.observable(),
+                undo: function cUndo() {if (cStep > 0) {cStep--;
+                var canvasPic = new Image();
+                canvasPic.src = cPushArray[cStep];
+                canvasPic.onload = function () { context.drawImage(canvasPic, 0, 0); }}},
+                redo:function cRedo() {if (cStep < cPushArray.length - 1) {cStep++; var canvasPic = new Image();
+                canvasPic.src = cPushArray[cStep];
+                canvasPic.onload = function () { context.drawImage(canvasPic, 0, 0); }}}
+            }
+            ko.applyBindings(viewModel);
+            self = viewModel;
+        });
+
 // Keep everything in anonymous function, called on window load.
 if (window.addEventListener) {
     window.addEventListener('load', function () {
-        
+
         // The active tool instance.
         var tool;
         var tool_default = 'line';
@@ -96,8 +134,8 @@ if (window.addEventListener) {
             // This starts the pencil drawing.
             this.mousedown = function (ev) {
                 context.beginPath();
-                context.lineWidth = $('#selWidth').val();
-                context.strokeStyle = $('#setLineColor').val();
+                context.lineWidth = self.selectedLWidth().value1; //$('#selWidth').val();
+                context.strokeStyle = self.selectedLColor().value1; //$('#setLineColor').val();
                 context.moveTo(ev._x, ev._y);
                 tool.started = true;
             };
@@ -128,7 +166,7 @@ if (window.addEventListener) {
                 }
             };
         };
-        
+
         // The rectangle tool.
         tools.rect = function () {
             var tool = this;
@@ -146,10 +184,9 @@ if (window.addEventListener) {
           y = Math.min(ev._y, tool.y0),
           w = Math.abs(ev._x - tool.x0),
           h = Math.abs(ev._y - tool.y0);
-                context.lineWidth = $('#selWidth').val();
-                context.fillStyle = $('#setFillColor').val();
-                context.strokeStyle = $('#setLineColor').val();
-                context.lineWidth = 4;
+                context.lineWidth = self.selectedLWidth().value1; //$('#selWidth').val();
+                context.fillStyle = self.selectedFColor().value1; //$('#setFillColor').val();
+                context.strokeStyle = self.selectedLColor().value1; //$('#setLineColor').val();
                 context.clearRect(0, 0, canvas.width, canvas.height);
                 if (!w || !h) {
                     return;
@@ -176,24 +213,24 @@ if (window.addEventListener) {
         };
 
         // The line tool.
-        tools.line = function() {
+        tools.line = function () {
             var tool = this;
             this.started = false;
 
-            this.mousedown = function(ev) {
+            this.mousedown = function (ev) {
                 tool.started = true;
                 tool.x0 = ev._x;
                 tool.y0 = ev._y;
             };
 
-            this.mousemove = function(ev) {
+            this.mousemove = function (ev) {
                 if (!tool.started) {
                     return;
                 }
 
                 context.clearRect(0, 0, canvas.width, canvas.height);
-                context.lineWidth = $('#selWidth').val();
-                context.strokeStyle = $('#setLineColor').val();
+                context.lineWidth = self.selectedLWidth().value1; // $('#selWidth').val();
+                context.strokeStyle = self.selectedLColor().value1; //$('#setLineColor').val();
                 context.beginPath();
                 context.moveTo(tool.x0, tool.y0);
                 context.lineTo(ev._x, ev._y);
@@ -201,7 +238,7 @@ if (window.addEventListener) {
                 context.closePath();
             };
 
-            this.mouseup = function(ev) {
+            this.mouseup = function (ev) {
                 if (tool.started) {
                     tool.mousemove(ev);
                     tool.started = false;
@@ -209,7 +246,7 @@ if (window.addEventListener) {
                     cPush();
                 }
             };
-            this.mouseleave = function(ev) {
+            this.mouseleave = function (ev) {
                 if (tool.started) {
                     tool.mousemove(ev);
                     tool.started = false;
@@ -235,20 +272,4 @@ function cPush() {
     cStep++;
     if (cStep < cPushArray.length) { cPushArray.length = cStep; }
     cPushArray.push(document.getElementById('imageView').toDataURL());
-}
-function cUndo() {
-    if (cStep > 0) {
-        cStep--;
-        var canvasPic = new Image();
-        canvasPic.src = cPushArray[cStep];
-        canvasPic.onload = function () { context.drawImage(canvasPic, 0, 0); }
-    }
-}
-function cRedo() {
-    if (cStep < cPushArray.length - 1) {
-        cStep++;
-        var canvasPic = new Image();
-        canvasPic.src = cPushArray[cStep];
-        canvasPic.onload = function () { context.drawImage(canvasPic, 0, 0); }
-    }
 }
